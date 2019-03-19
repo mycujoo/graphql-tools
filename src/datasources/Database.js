@@ -30,6 +30,11 @@ class Database {
     return this._name
   }
 
+  // Return the found doc / null
+  findOne(root, args, context, info) {
+    return this._dataloader.load(args[this._idField])
+  }
+
   // Connect to your database
   async connect() {}
 
@@ -44,11 +49,6 @@ class Database {
 
   // Return true / false if successful / failed
   async delete(root, args, context, info) {}
-
-  // Return the found doc / null
-  findOne(root, args, context, info) {
-    return this._dataloader.load(args[this._idField])
-  }
 
   // Return a cursor and items array.
   // {

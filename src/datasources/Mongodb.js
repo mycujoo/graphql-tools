@@ -8,7 +8,7 @@ const { MongoClient, ObjectID } = require('mongodb')
 
 const Database = require('./Database')
 
-class MongodbDatasource extends Database {
+class Mongodb extends Database {
   constructor({ name, config, idField = 'id' }) {
     super({ name, config, idField })
     this.debug = debug(`@mycujoo/graphql-tools:MongodbDatasource:${name}`)
@@ -152,4 +152,4 @@ class MongodbDatasource extends Database {
   }
 }
 
-module.exports = MongodbDatasource
+module.exports = Mongodb
