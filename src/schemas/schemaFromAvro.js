@@ -3,23 +3,22 @@
 const _ = require('lodash')
 const { camelize, pascalize } = require('humps')
 const { gql } = require('apollo-server')
-const { makeExecutableSchema } = require('graphql-tools')
 
 const baseTypeConversions = {
-  string: () => {
-    return 'String'
+  ID: () => {
+    return 'ID'
   },
   boolean: () => {
     return 'Boolean'
   },
-  long: () => {
-    return 'Int'
-  },
   int: () => {
     return 'Int'
   },
-  ID: () => {
-    return 'ID'
+  long: () => {
+    return 'Int'
+  },
+  string: () => {
+    return 'String'
   },
 }
 
