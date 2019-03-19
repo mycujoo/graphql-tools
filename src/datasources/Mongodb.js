@@ -117,13 +117,6 @@ class MongodbDatasource extends Database {
     return item.result.ok === 1
   }
 
-  // TODO Implement a dataloader
-  findOne(parent, args, context, info) {
-    const query = this._getIdObject(args[this._idField])
-
-    return this._collection.findOne(query)
-  }
-
   async find(parent, args, context, info) {
     const { limit, sort, after, before } = args
     let skip = 0

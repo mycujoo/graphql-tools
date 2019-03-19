@@ -6,7 +6,7 @@ const debug = require('debug')
 
 module.exports = (DatabaseDatasource, addAdditive) => {
   class KafkaDatabaseDatasource extends DatabaseDatasource {
-    constructor({ name, config, idField, kafka }) {
+    constructor({ name, config, idField = 'id', kafka }) {
       super({ name, config, idField })
       this.name = name
       this.idField = idField
