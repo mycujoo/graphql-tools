@@ -90,8 +90,10 @@ class MongodbDatasource extends Database {
       { returnOriginal: false },
     )
     if (!doc && doc.value) return
+    const value = doc.value
+    value._id = value._id.toString()
 
-    return doc.value
+    return value
   }
 
   async update(parent, args, context, info) {

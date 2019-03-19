@@ -4,15 +4,20 @@ const Redis = require('ioredis')
 const debug = require('debug')('@mycujoo/graphql-tools:RedisCache')
 
 class RedisCache {
-  constructor({ apqTtl, redis, prefix = '' }) {
-    this._redis = new Redis(redis)
-    debug('connecting to ', redis)
+  constructor({ ttl, redis, prefix = '' }) {
     this._prefix = prefix
-    this._ttl = apqTtl || 300
+    debug('prefix set at', this._prefix)
+    this._ttl = ttl || 300
+    debug('default ttl set at', this._ttl)
+    debug('connecting to ', redis)
+    this._redis = new Redis(redis)
+    this._redis.on('connect', () => {
+      debug('(re)connected')
+    })
   }
 
   _formatKey(key) {
-    return this._prefix + ': ' + key
+    return this._prefix + ':' + key
   }
 
   set(key, data, options = { ttl: this._ttl }) {
