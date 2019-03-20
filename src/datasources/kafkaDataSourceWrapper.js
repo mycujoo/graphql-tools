@@ -4,8 +4,8 @@ const { Producer } = require('@mycujoo/kafka-clients')
 
 const debug = require('debug')
 
-module.exports = (DatabaseDatasource, addAdditive) => {
-  class KafkaDatabaseDatasource extends DatabaseDatasource {
+module.exports = (DatabaseDataSource, addAdditive) => {
+  class KafkaDatabaseDataSource extends DatabaseDataSource {
     constructor({ name, config, idField = 'id', kafka }) {
       super({ name, config, idField })
       this.name = name
@@ -38,5 +38,5 @@ module.exports = (DatabaseDatasource, addAdditive) => {
       return res
     }
   }
-  return KafkaDatabaseDatasource
+  return KafkaDatabaseDataSource
 }

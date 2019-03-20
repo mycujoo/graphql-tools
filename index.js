@@ -2,9 +2,9 @@
 
 module.exports = {
   RedisCache: require('./src/cache/Redis'),
-  MongodbDatasource: require('./src/datasources/Mongodb'),
+  MongodbDataSource: require('./src/datasources/Mongodb'),
   expressMiddlewares: require('./src/middlewares/express'),
-  kafkaDatasourceWrapper: require('./src/datasources/kafkaDatasourceWrapper'),
+  kafkaDataSourceWrapper: require('./src/datasources/kafkaDataSourceWrapper'),
   schemaFromAvro: require('./src/schemas/schemaFromAvro').schemaFromAvro,
   // graphqlMiddlewares: require('./src/middlewares/graphql'),
 }

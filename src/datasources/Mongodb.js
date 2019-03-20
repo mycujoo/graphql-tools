@@ -11,7 +11,7 @@ const Database = require('./Database')
 class Mongodb extends Database {
   constructor({ name, config, idField = 'id' }) {
     super({ name, config, idField })
-    this.debug = debug(`@mycujoo/graphql-tools:MongodbDatasource:${name}`)
+    this.debug = debug(`@mycujoo/graphql-tools:MongodbDataSource:${name}`)
   }
 
   async connect() {
@@ -24,7 +24,7 @@ class Mongodb extends Database {
     })
 
     this._connection = connection
-    const databaseName = this._config.database || 'MongodbDatasource'
+    const databaseName = this._config.database || 'MongodbDataSource'
     this._db = this._connection.db(databaseName)
     this.debug(`Database: ${databaseName} collection: ${this._name}`)
     this._collection = this._db.collection(this._name)
