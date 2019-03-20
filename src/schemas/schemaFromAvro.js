@@ -58,6 +58,7 @@ function avroToGraphql({
   queries,
   queryableFields,
   sortableFields,
+  rangeQueryableFields,
 }) {
   avroSchema.fields = _.filter(avroSchema.fields, ({ name }) => {
     return _.indexOf(omitFields, name) === -1
@@ -72,6 +73,7 @@ function avroToGraphql({
     queries,
     queryableFields,
     sortableFields,
+    rangeQueryableFields,
   })
   const typeDef = gqlSchema.getTypeDef()
   const resolver = gqlSchema.getResolver()
@@ -88,11 +90,13 @@ class GqlSchema {
     queries,
     queryableFields = [],
     sortableFields = [],
+    rangeQueryableFields = [],
   }) {
     this.avro = avro
     this.mutations = mutations
     this.idField = idField
     this.queryableFields = queryableFields
+    this.rangeQueryableFields = rangeQueryableFields
     this.extendQuery = !_.isNil(queries.extend) ? queries.extend : true
     this.extendMutation = !_.isNil(mutations.extend) ? mutations.extend : true
     this.dataSourceName =
@@ -122,10 +126,14 @@ class GqlSchema {
       line = `${lineParts[0]} : [${lineParts[1].trim()}]`
       queryType += `\t\t${line}\n`
     })
-    queryType += `\t\tlimit: Int!\n`
-    queryType += `\t\tafter: ID\n`
-    queryType += `\t\tbefore: ID\n`
-    if (this.sortEnum) queryType += `\t\tsort: [${this.sortEnum}]\n`
+    _.each(this.rangeQueryableFields, field => {
+      queryType += `\t\t_range_${field}: InputRangeSelector\n`
+    })
+
+    queryType += `\t\t_limit: Int!\n`
+    queryType += `\t\t_after: ID\n`
+    queryType += `\t\t_before: ID\n`
+    if (this.sortEnum) queryType += `\t\t_sort: [${this.sortEnum}]\n`
 
     queryType += `\t): ${pascalize(this.avro.name)}Cursor\n`
     return queryType
@@ -204,6 +212,31 @@ class GqlSchema {
       },
       false,
     )
+    this.createInput({
+      name: 'RangeSelector',
+      fields: [
+        {
+          name: 'gt',
+          type: ['null', 'int'],
+          doc: 'Greater than',
+        },
+        {
+          name: 'lt',
+          type: ['null', 'int'],
+          doc: 'Less than',
+        },
+        {
+          name: 'gte',
+          type: ['null', 'int'],
+          doc: 'Greater than or equal',
+        },
+        {
+          name: 'lte',
+          type: ['null', 'int'],
+          doc: 'Less than or equal',
+        },
+      ],
+    })
   }
 
   createSortEnum(sortableFields) {
@@ -369,6 +402,7 @@ class GqlSchema {
       }
     }
   }
+
   processArrayType(types, name) {
     const nullLessTypes = _.without(types, 'null')
     const isNullable = nullLessTypes.length !== types.length

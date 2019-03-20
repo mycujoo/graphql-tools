@@ -66,16 +66,35 @@ class Mongodb extends Database {
     )
   }
 
+  _formatRangeQuery(name, options) {
+    const attributeName = name.split('_range_')[1]
+    const value = _.reduce(
+      options,
+      (m, value, key) => {
+        m[`$${key}`] = value
+        return m
+      },
+      {},
+    )
+    const res = {}
+    res[attributeName] = value
+    return res
+  }
+
   _formatQuery(args) {
     return _.reduce(
       args,
       (m, value, key) => {
-        if (_.isArray(value))
+        if (_.isArray(value)) {
           m[key] = {
             $in: value,
           }
-        else m[key] = value
-        return m
+        } else if (key.startsWith('_range_')) {
+          return _.assign(this._formatRangeQuery(key, value), m)
+        } else {
+          m[key] = value
+          return m
+        }
       },
       {},
     )
@@ -89,7 +108,6 @@ class Mongodb extends Database {
       { $set: idObj },
       { returnOriginal: false },
     )
-    if (!doc && doc.value) return
     const value = doc.value
     value._id = value._id.toString()
 
@@ -118,21 +136,21 @@ class Mongodb extends Database {
   }
 
   async find(parent, args, context, info) {
-    const { limit, sort, after, before } = args
+    const { _limit, _sort, _after, _before } = args
     let skip = 0
-    if (after && before)
+    if (_after && _before)
       throw new Error('Received conflicting before and after arguements')
 
-    if (after) skip = Number(after)
-    if (before) skip = Number(before) - limit
+    if (_after) skip = Number(_after)
+    if (_before) skip = Number(_before) - _limit
     if (skip < 0) skip = 0
 
-    const queryOptions = _.omit(args, 'limit', 'sort', 'after', 'before')
-    const sorting = this._formatSort(sort)
+    const queryOptions = _.omit(args, '_limit', '_sort', '_after', '_before')
+    const sorting = this._formatSort(_sort)
     const query = this._formatQuery(queryOptions)
 
     const items = await this._collection
-      .find(query, { limit, sort: sorting, skip })
+      .find(query, { limit: _limit, sort: sorting, skip })
       .toArray()
 
     const start = skip
