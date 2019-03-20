@@ -93,8 +93,8 @@ class Mongodb extends Database {
           return _.assign(this._formatRangeQuery(key, value), m)
         } else {
           m[key] = value
-          return m
         }
+        return m
       },
       {},
     )

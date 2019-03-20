@@ -141,10 +141,13 @@ class GqlSchema {
 
   createCountQuery(queryName) {
     let queryType = `\t${queryName}`
-    if (this.queryFields.length !== 0) {
+    if (this.queryFields.length + this.rangeQueryableFields.length !== 0) {
       queryType += `(\n`
     }
 
+    _.each(this.rangeQueryableFields, field => {
+      queryType += `\t\t_range_${field}: InputRangeSelector\n`
+    })
     _.each(this.queryFields, line => {
       line = line.split('\t')[1]
       line = _.without(line.split(''), '!').join('')
@@ -152,7 +155,7 @@ class GqlSchema {
       line = `${lineParts[0]} : [${lineParts[1].trim()}]`
       queryType += `\t\t${line}\n`
     })
-    if (this.queryFields.length !== 0) {
+    if (this.queryFields.length + this.rangeQueryableFields.length !== 0) {
       queryType += `\t)`
     }
     queryType += `: Int!\n`
