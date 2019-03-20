@@ -59,6 +59,7 @@ function avroToGraphql({
   queryableFields,
   sortableFields,
   rangeQueryableFields,
+  cacheControl,
 }) {
   avroSchema.fields = _.filter(avroSchema.fields, ({ name }) => {
     return _.indexOf(omitFields, name) === -1
@@ -74,6 +75,7 @@ function avroToGraphql({
     queryableFields,
     sortableFields,
     rangeQueryableFields,
+    cacheControl,
   })
   const typeDef = gqlSchema.getTypeDef()
   const resolver = gqlSchema.getResolver()
@@ -91,6 +93,7 @@ class GqlSchema {
     queryableFields = [],
     sortableFields = [],
     rangeQueryableFields = [],
+    cacheControl,
   }) {
     this.avro = avro
     this.mutations = mutations
@@ -101,7 +104,7 @@ class GqlSchema {
     this.extendMutation = !_.isNil(mutations.extend) ? mutations.extend : true
     this.dataSourceName =
       dataSourceName || camelize(this.avro.name.toLowerCase())
-
+    this.cacheControl = cacheControl
     this.resolver = {}
     this.types = []
     this.enums = []
@@ -496,7 +499,22 @@ class GqlSchema {
   }
   createType({ name, fields }, createInput = true, topLevel = false) {
     fields = _.sortBy(fields, 'name')
-    let type = _.reduce(
+    let type = `type ${pascalize(name)}`
+    if (!_.isNil(this.cacheControl)) {
+      type += ' @cacheControl('
+      if (
+        !_.isNil(this.cacheControl.maxAge) &&
+        !_.isNil(this.cacheControl.scope)
+      )
+        type += `maxAge: ${this.cacheControl.maxAge}, scope: ${
+          this.cacheControl.scope
+        })`
+      else if (!_.isNil(this.cacheControl.maxAge))
+        type += `maxAge: ${this.cacheControl.maxAge})`
+      else type += `scope: ${this.cacheControl.scope})`
+    }
+    type += ' {\n'
+    type = _.reduce(
       fields,
       (m, field) => {
         const processedField = this.processField(field)
@@ -509,7 +527,7 @@ class GqlSchema {
         }
         return m + '\t' + processedField + '\n'
       },
-      `type ${pascalize(name)} {\n`,
+      type,
     )
     type += '}'
     this.types.unshift(type)
