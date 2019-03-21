@@ -4,7 +4,9 @@
   "description": "graphql-tools, datasources, middlewares, schema generators",
   "main": "index.js",
   "scripts": {
-    "test": "eslint . && jest --verbose --coverage"
+    "tests": "jest --watchAll --verbose --coverage",
+    "test": "eslint . && jest --verbose --coverage",
+    "citest": "eslint . && NODE_ENV=citest jest --verbose --coverage --forceExit --ci"
   },
   "repository": {
     "type": "git",
@@ -77,6 +79,7 @@
   "dependencies": {
     "@mycujoo/kafka-clients": "^2.0.0",
     "apollo-server": "^2.4.8",
+    "config": "^3.0.1",
     "dataloader": "^1.4.0",
     "debug": "^4.1.1",
     "dot-object": "^1.7.1",
@@ -84,6 +87,7 @@
     "graphql": "^14.1.1",
     "humps": "^2.0.1",
     "ioredis": "^4.6.2",
+    "jest": "^24.5.0",
     "lodash": "^4.17.11",
     "mongodb": "^3.1.13",
     "mongodb-uri": "^0.9.7"

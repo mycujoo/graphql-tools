@@ -1,5 +1,6 @@
 'use strict'
 
+const _ = require('lodash')
 const Redis = require('ioredis')
 const debug = require('debug')('@mycujoo/graphql-tools:RedisCache')
 
@@ -17,6 +18,7 @@ class RedisCache {
   }
 
   _formatKey(key) {
+    if (!this._prefix) return key
     return this._prefix + ':' + key
   }
 
@@ -33,7 +35,7 @@ class RedisCache {
     return new Promise((resolve, reject) => {
       this._redis
         .scanStream({
-          match: `${prefix}*`,
+          match: this._formatKey(`${prefix}*`),
           count: 100,
         })
         .once('error', reject)
@@ -42,7 +44,7 @@ class RedisCache {
         })
         .once('end', async () => {
           await Promise.all(
-            keys.map(key => {
+            _.map(keys, key => {
               return this._redis.del(key)
             }),
           )

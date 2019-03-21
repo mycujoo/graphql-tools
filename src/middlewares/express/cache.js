@@ -5,6 +5,7 @@ const _ = require('lodash')
 const crypto = require('crypto')
 
 module.exports = (logger, options) => {
+  const prefix = options.prefix || ''
   const redis = new Redis(options.redis)
   const TTL = options.defaultTtl
   const CACHEABLE_HEADERS = [
@@ -140,7 +141,7 @@ module.exports = (logger, options) => {
   return async (req, res, next) => {
     if (!useCache(req)) return next()
 
-    const key = 'gql:' + hash(req.originalUrl)
+    const key = `${prefix}:` + hash(req.originalUrl)
 
     if (await cacheLookup({ key, req, res })) return
 

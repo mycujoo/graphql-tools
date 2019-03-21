@@ -1,17 +1,19 @@
 'use strict'
 
-const { cache, etags } = require('../')
+const _ = require('lodash')
 const http = require('http')
-const RedisCache = require('../../RedisCache')
+const Redis = require('ioredis')
 const express = require('express')
+const config = require('config')
 const logger = require('@mycujoo/logger')
 const got = require('got')
+
+const { cache, etags } = require('../')
 
 var httpServer = null
 var gotInstance = null
 var app = null
-
-const PORT = 9875
+var PORT = null
 
 afterAll(() => {
   if (!httpServer) return
@@ -20,22 +22,40 @@ afterAll(() => {
   })
 })
 
-beforeAll(async () => {
-  const redis = new RedisCache(require('../../config').get('redis'))
-  await redis.flush('gql')
-
+beforeAll(async done => {
   app = express()
   app.set('etag', false)
-  app.use(etags)
-  app.use(cache(logger))
+  app.use(etags(logger))
+  app.use(cache(logger, { redis: config.redis, prefix: 'test' }))
 
-  gotInstance = got.extend({
-    baseUrl: `http://localhost:${PORT}/`,
-    json: true,
-  })
   httpServer = http.createServer(app)
-  return new Promise((resolve, reject) => {
-    httpServer.listen(PORT, resolve)
+
+  httpServer.listen({ port: 0 }, () => {
+    PORT = httpServer.address().port
+    gotInstance = got.extend({
+      baseUrl: `http://localhost:${PORT}`,
+      json: true,
+    })
+    const redis = new Redis(config.redis)
+    let keys = []
+    redis
+      .scanStream({
+        match: 'test*',
+        count: 100,
+      })
+      .once('error', done)
+      .on('data', data => {
+        keys = keys.concat(data)
+      })
+      .once('end', async () => {
+        if (keys.length === 0) return done()
+        await Promise.all(
+          _.map(keys, key => {
+            return redis.del(key)
+          }),
+        )
+        done()
+      })
   })
 })
 

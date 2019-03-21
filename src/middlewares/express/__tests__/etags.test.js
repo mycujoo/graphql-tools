@@ -4,12 +4,13 @@ const http = require('http')
 const express = require('express')
 const got = require('got')
 const etag = require('etag')
+const logger = require('@mycujoo/logger')
 
-var httpServer = null
-var gotInstance = null
-var app = null
+let httpServer = null
+let gotInstance = null
+let app = null
 
-const PORT = 9876
+let PORT
 
 afterAll(() => {
   return new Promise((resolve, reject) => {
@@ -17,18 +18,19 @@ afterAll(() => {
   })
 })
 
-beforeAll(() => {
+beforeAll(async () => {
   app = express()
   app.set('etag', false)
-  app.use(etags)
+  app.use(etags(logger))
 
+  httpServer = http.createServer(app)
+  await new Promise((resolve, reject) => {
+    httpServer.listen(PORT, resolve)
+  })
+  PORT = httpServer.address().port
   gotInstance = got.extend({
     baseUrl: `http://localhost:${PORT}/`,
     json: true,
-  })
-  httpServer = http.createServer(app)
-  return new Promise((resolve, reject) => {
-    httpServer.listen(PORT, resolve)
   })
 })
 

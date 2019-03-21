@@ -1,0 +1,5 @@
+.git
+.circleci
+coverage
+kubernetes
+node_modules
