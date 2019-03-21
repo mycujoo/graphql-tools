@@ -46,7 +46,7 @@ describe('Redis cache function tests', () => {
     })
     const data = 'test4'
     await redisCache.set('bla', data)
-    const res = await redis.get(':bla')
+    const res = await redis.get('bla')
     expect(res).toEqual(data)
   })
 })
