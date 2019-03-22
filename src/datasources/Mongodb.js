@@ -85,12 +85,19 @@ class Mongodb extends Database {
     return _.reduce(
       args,
       (m, value, key) => {
-        if (_.isArray(value)) {
+        if (key.startsWith('_range_')) {
+          return _.assign(this._formatRangeQuery(key, value), m)
+        } else if (typeof value === 'object' && !Array.isArray(value)) {
+          _.each(_.keys(value), subKey => {
+            const obj = {}
+            obj[`${key}.${subKey}`] = value[subKey]
+            m = _.merge(this._formatQuery(obj), m)
+          })
+          return m
+        } else if (_.isArray(value)) {
           m[key] = {
             $in: value,
           }
-        } else if (key.startsWith('_range_')) {
-          return _.assign(this._formatRangeQuery(key, value), m)
         } else {
           m[key] = value
         }
@@ -98,6 +105,20 @@ class Mongodb extends Database {
       },
       {},
     )
+  }
+
+  processResponse(doc) {
+    if (!doc) return null
+    if (this._idField === '_id') {
+      doc._id = doc._id.toString()
+      return doc
+    }
+    return _.omit(doc, '_id')
+  }
+
+  async findOne(...args) {
+    const res = await super.findOne.apply(this, args)
+    return this.processResponse(res)
   }
 
   async create(parent, args, context, info) {
@@ -108,10 +129,7 @@ class Mongodb extends Database {
       { $set: idObj },
       { returnOriginal: false },
     )
-    const value = doc.value
-    value._id = value._id.toString()
-
-    return value
+    return this.processResponse(doc.value)
   }
 
   async update(parent, args, context, info) {
@@ -120,13 +138,13 @@ class Mongodb extends Database {
 
     dot.dot(_.omit(args, this._idField), update.$set)
 
-    const item = await this._collection.findOneAndUpdate(query, update, {
+    const doc = await this._collection.findOneAndUpdate(query, update, {
       returnOriginal: false,
     })
 
-    if (!item && item.value) return
+    if (!doc && doc.value) return
 
-    return item.value
+    return this.processResponse(doc.value)
   }
 
   async delete(parent, args, context, info) {
@@ -161,7 +179,9 @@ class Mongodb extends Database {
         start,
         end,
       },
-      items,
+      items: _.map(items, item => {
+        return this.processResponse(item)
+      }),
     }
   }
 
