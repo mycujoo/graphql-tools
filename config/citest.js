@@ -5,4 +5,7 @@ module.exports = {
     host: 'redis',
     port: 6379,
   },
+  mongodb: {
+    hosts: [{ host: 'mongodb', port: 27017 }],
+  },
 }
