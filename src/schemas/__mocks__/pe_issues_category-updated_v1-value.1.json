@@ -1,0 +1,52 @@
+{
+  "type": "record",
+  "name": "IssueCategory",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "doc": "ID of the category"
+    },
+    {
+      "name": "deleted",
+      "type": "boolean",
+      "doc": "Soft delete of the category"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "doc": "Title of the category"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "doc": "Description of the category"
+    },
+    {
+      "name": "creatorUserId",
+      "type": "string",
+      "doc": "User ID of the creator of the category"
+    },
+    {
+      "name": "updaterUserId",
+      "type": ["null", "string"],
+      "doc": "User ID of the person who was the last person to update the category"
+    },
+    {
+      "name": "updatedAt",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Latest time at which the category has been updated"
+    },
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique ID for the Kafka event"
+    },
+    {
+      "name": "traceToken",
+      "type": "string",
+      "doc": "Trace token for this request, coming from upstream service"
+    }
+  ]
+}
