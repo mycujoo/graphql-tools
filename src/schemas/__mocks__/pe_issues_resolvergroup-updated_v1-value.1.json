@@ -1,0 +1,70 @@
+{
+  "type": "record",
+  "name": "ResolverGroup",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "doc": "ID of the resolver group"
+    },
+    {
+      "name": "deleted",
+      "type": "boolean",
+      "doc": "Soft delete of the resolver group"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "doc": "Title of the resolver group"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "doc": "Description of the resolver group"
+    },
+    {
+      "name": "slackChannel",
+      "type": "string",
+      "doc": "Slack channel of the resolver group"
+    },
+    {
+      "name": "email",
+      "type": "string",
+      "doc": "Email address of the resolver group"
+    },
+    {
+      "name": "userIds",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "doc": "Ids of the users that are part of this resolver group"
+    },
+    {
+      "name": "creatorUserId",
+      "type": "string",
+      "doc": "User ID of the creator of the resolver group"
+    },
+    {
+      "name": "updaterUserId",
+      "type": ["null", "string"],
+      "doc": "User ID of the person who was the last person to update the resolver group"
+    },
+    {
+      "name": "updatedAt",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Latest time at which the resolver group has been updated"
+    },
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique ID for the Kafka event"
+    },
+    {
+      "name": "traceToken",
+      "type": "string",
+      "doc": "Trace token for this request, coming from upstream service"
+    }
+  ]
+}

@@ -2,7 +2,6 @@
 
 const _ = require('lodash')
 const { camelize, pascalize } = require('humps')
-const { gql } = require('apollo-server')
 
 const baseTypeConversions = {
   ID: () => {
@@ -126,7 +125,11 @@ class GqlSchema {
       line = line.split('\t')[1]
       line = _.without(line.split(''), '!').join('')
       const lineParts = line.split(':')
-      line = `${lineParts[0]} : [${lineParts[1].trim()}]`
+      let type = lineParts[1].trim()
+      if (type.indexOf('[') !== 0) {
+        type = `[${type}]`
+      }
+      line = `${lineParts[0]} : ${type}`
       queryType += `\t\t${line}\n`
     })
     _.each(this.rangeQueryableFields, field => {
@@ -277,7 +280,7 @@ class GqlSchema {
     this.enums = []
     this.unions = []
 
-    return gql(schema)
+    return schema
   }
 
   createMutationType() {
@@ -402,6 +405,14 @@ class GqlSchema {
         const isNullable = nullLessTypes.length !== type.items
         this.createUnion(type.items, name)
         return { type: `[${pascalize(name)}]${isNullable ? '' : '!'}` }
+      } else if (
+        typeof type.items === 'string' &&
+        baseTypeConversions[type.items]
+      ) {
+        return {
+          type: `[${baseTypeConversions[type.items]()}]!`,
+          baseType: true,
+        }
       } else {
         const typeName = this.createType(type.items)
         return { type: `[${typeName}]!` }
@@ -584,4 +595,5 @@ class GqlSchema {
 module.exports = {
   avroToGraphql,
   schemaFromAvro,
+  GqlSchema,
 }
