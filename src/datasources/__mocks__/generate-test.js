@@ -324,5 +324,31 @@ module.exports = dataSource => {
       const results = await dataSource.find.apply(dataSource, formatArgs(query))
       expect(results.items).toEqual(dateSortedItems)
     })
+    test('should count a few items with a range query', async () => {
+      const query = {
+        _range_date: {
+          gt: 1234567893,
+        },
+      }
+
+      const results = await dataSource.count.apply(
+        dataSource,
+        formatArgs(query),
+      )
+      expect(results).toEqual(5)
+    })
+    test('should count a few items with another range query', async () => {
+      const query = {
+        _range_date: {
+          gte: 1234567893,
+        },
+      }
+
+      const results = await dataSource.count.apply(
+        dataSource,
+        formatArgs(query),
+      )
+      expect(results).toEqual(6)
+    })
   })
 }

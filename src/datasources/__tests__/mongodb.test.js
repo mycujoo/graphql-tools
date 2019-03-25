@@ -21,12 +21,23 @@ describe('Mongodb', () => {
     await connection.close()
   })
 
-  describe('run the test suite', () => {
+  describe('run the test suite one', () => {
     const mongodb = new Mongodb({
       name: 'Mongodb',
       config: config.mongodb,
       idField: 'id',
     })
+    expect(mongodb.getName()).toEqual('Mongodb')
     testRunner(mongodb)
+  })
+
+  describe('run the test suite two', () => {
+    const mongodbId = new Mongodb({
+      name: 'MongodbId',
+      config: config.mongodb,
+      idField: '_id',
+    })
+
+    testRunner(mongodbId)
   })
 })

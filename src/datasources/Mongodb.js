@@ -35,9 +35,13 @@ class Mongodb extends Database {
     return this._connection.close()
   }
 
+  processId(id) {
+    return this._idField === '_id' ? new ObjectID(id) : id
+  }
+
   _getIdObject(id) {
     const obj = {}
-    obj[this._idField] = this._idField === '_id' ? new ObjectID(id) : id
+    obj[this._idField] = this.processId(id)
     return obj
   }
 
