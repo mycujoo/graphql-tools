@@ -7,7 +7,7 @@ const { MongoClient } = require('mongodb')
 
 const Mongodb = require('../Mongodb')
 
-const uri = mongodbUri.format(this._config)
+const uri = mongodbUri.format(config.mongodb)
 
 describe('Mongodb', () => {
   beforeAll(async () => {
@@ -21,7 +21,7 @@ describe('Mongodb', () => {
     await connection.close()
   })
 
-  describe('run the test suite', async () => {
+  describe('run the test suite', () => {
     const mongodb = new Mongodb({
       name: 'Mongodb',
       config: config.mongodb,

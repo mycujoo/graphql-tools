@@ -275,6 +275,7 @@ module.exports = dataSource => {
       const results = await dataSource.find.apply(dataSource, formatArgs(query))
       expect(results.items).toEqual(dateSortedItems)
     })
+
     test('should find, limit and sort few items', async () => {
       const fields = ['text1', 'text2', 'text3']
       const query = {
@@ -299,7 +300,29 @@ module.exports = dataSource => {
       const results = await dataSource.find.apply(dataSource, formatArgs(query))
       expect(results.items).toEqual(dateSortedItems)
     })
-    // test('should find, limit and multi sort few items')
-    // test('should find, limit and multi sort few items with a range query')
+
+    test('should find, limit and multi sort few items with a range query', async () => {
+      const query = {
+        _range_date: {
+          gt: 1234567893,
+        },
+        _sort: ['dateDsc'],
+        _limit: 4,
+      }
+
+      const dateSortedItems = _.take(
+        _.sortBy(
+          _.filter(createdItems, item => {
+            return item.date > query._range_date.gt
+          }),
+          item => {
+            return -item.date
+          },
+        ),
+        4,
+      )
+      const results = await dataSource.find.apply(dataSource, formatArgs(query))
+      expect(results.items).toEqual(dateSortedItems)
+    })
   })
 }
