@@ -11,7 +11,7 @@ class Database {
     this._dataloader = new DataLoader(
       async ids => {
         const request = {}
-        request[idField] = ids
+        request[idField] = _.map(ids, this.processId.bind(this))
         const { items } = await this.find(null, request, null, null)
         return _.map(ids, id => {
           return _.find(items, item => {
@@ -24,6 +24,10 @@ class Database {
         cache: false,
       },
     )
+  }
+
+  processId(id) {
+    return id
   }
 
   getName() {

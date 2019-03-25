@@ -324,5 +324,79 @@ module.exports = dataSource => {
       const results = await dataSource.find.apply(dataSource, formatArgs(query))
       expect(results.items).toEqual(dateSortedItems)
     })
+    test('should count a few items with a range query', async () => {
+      const query = {
+        _range_date: {
+          gt: 1234567893,
+        },
+      }
+
+      const results = await dataSource.count.apply(
+        dataSource,
+        formatArgs(query),
+      )
+      expect(results).toEqual(5)
+    })
+    test('should count a few items with another range query', async () => {
+      const query = {
+        _range_date: {
+          gte: 1234567893,
+        },
+      }
+
+      const results = await dataSource.count.apply(
+        dataSource,
+        formatArgs(query),
+      )
+      expect(results).toEqual(6)
+    })
+    test('should find, limit and multi sort few items with a range + after query', async () => {
+      const query = {
+        _range_date: {
+          gt: 1234567893,
+        },
+        _sort: ['dateDsc'],
+        _limit: 3,
+        _after: 2,
+      }
+
+      const dateSortedItems = _.takeRight(
+        _.sortBy(
+          _.filter(createdItems, item => {
+            return item.date > query._range_date.gt
+          }),
+          item => {
+            return -item.date
+          },
+        ),
+        3,
+      )
+      const results = await dataSource.find.apply(dataSource, formatArgs(query))
+      expect(results.items).toEqual(dateSortedItems)
+    })
+    test('should find, limit and multi sort few items with a range + before query', async () => {
+      const query = {
+        _range_date: {
+          gt: 1234567893,
+        },
+        _sort: ['dateDsc'],
+        _limit: 3,
+        _before: 3,
+      }
+
+      const dateSortedItems = _.take(
+        _.sortBy(
+          _.filter(createdItems, item => {
+            return item.date > query._range_date.gt
+          }),
+          item => {
+            return -item.date
+          },
+        ),
+        3,
+      )
+      const results = await dataSource.find.apply(dataSource, formatArgs(query))
+      expect(results.items).toEqual(dateSortedItems)
+    })
   })
 }
