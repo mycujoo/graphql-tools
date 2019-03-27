@@ -14,7 +14,7 @@ const baseTypeConversions = {
     return 'Int'
   },
   long: () => {
-    return 'Int'
+    return 'Float'
   },
   string: () => {
     return 'String'
