@@ -120,6 +120,20 @@ class Mongodb extends Database {
     return _.omit(doc, '_id')
   }
 
+  async increment(parent, args, context, info) {
+    const query = this._getIdObject(args[this._idField])
+    const update = { $inc: {} }
+
+    dot.dot(_.omit(args, this._idField), update.$inc)
+
+    const doc = await this._collection.findOneAndUpdate(query, update, {
+      returnOriginal: false,
+    })
+    if (!doc && doc.value) return
+
+    return this.processResponse(doc.value)
+  }
+
   async findOne(...args) {
     const res = await super.findOne.apply(this, args)
     return this.processResponse(res)

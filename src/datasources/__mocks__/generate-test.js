@@ -398,5 +398,18 @@ module.exports = dataSource => {
       const results = await dataSource.find.apply(dataSource, formatArgs(query))
       expect(results.items).toEqual(dateSortedItems)
     })
+
+    test('should increment and decrement a value', async () => {
+      const args = formatArgs(getIdObject(createdItems[0]))
+      args[1].nested = { number: 1 }
+      const res = await dataSource.increment.apply(dataSource, args)
+      expect(res.nested.number).toEqual(11)
+      createdItems[0] = res
+      const inc2 = formatArgs(getIdObject(createdItems[0]))
+      inc2[1].nested = { number: -2 }
+      const res2 = await dataSource.increment.apply(dataSource, inc2)
+      expect(res2.nested.number).toEqual(9)
+      createdItems[0] = res2
+    })
   })
 }
