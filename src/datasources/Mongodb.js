@@ -71,7 +71,8 @@ class Mongodb extends Database {
   }
 
   _formatRangeQuery(name, options) {
-    const attributeName = name.split('_range_')[1]
+    const attributeNames = name.split('_range_')[1]
+    const attributeName = attributeNames.replace('_', '.')
     const value = _.reduce(
       options,
       (m, value, key) => {

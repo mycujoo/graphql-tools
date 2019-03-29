@@ -120,13 +120,17 @@ class GqlSchema {
 
   createFindQuery(queryName) {
     let queryType = `\t${queryName}(\n`
-
+    let multiInput = true
     _.each(this.queryFields, line => {
-      line = line.split('\t')[1]
+      if (typeof line === 'object') {
+        multiInput = line.multiInput
+        line = line.line
+      }
+      if (line.includes('\t')) line = line.split('\t')[1]
       line = _.without(line.split(''), '!').join('')
       const lineParts = line.split(':')
       let type = lineParts[1].trim()
-      if (type.indexOf('[') !== 0) {
+      if (multiInput && type.indexOf('[') !== 0) {
         type = `[${type}]`
       }
       line = `${lineParts[0]} : ${type}`
@@ -155,7 +159,8 @@ class GqlSchema {
       queryType += `\t\t_range_${field}: InputRangeSelector\n`
     })
     _.each(this.queryFields, line => {
-      line = line.split('\t')[1]
+      if (line.line) line = line.line
+      if (line.includes('\t')) line = line.split('\t')[1]
       line = _.without(line.split(''), '!').join('')
       const lineParts = line.split(':')
       line = `${lineParts[0]} : [${lineParts[1].trim()}]`
@@ -424,9 +429,9 @@ class GqlSchema {
     }
   }
 
-  processArrayType(types, name) {
+  processArrayType(types, name, optional) {
     const nullLessTypes = _.without(types, 'null')
-    const isNullable = nullLessTypes.length !== types.length
+    const isNullable = optional || nullLessTypes.length !== types.length
     if (nullLessTypes.length === 1) {
       const processedType = this.processType(nullLessTypes[0], name)
       if (
@@ -446,22 +451,25 @@ class GqlSchema {
     )
   }
 
-  processType(type, name) {
+  processType(type, name, optional) {
     if (typeof type === 'string') {
       if (
         name === 'id' ||
         name === '_id' ||
         name.slice(name.length - 2) === 'Id'
       )
-        return { baseType: true, type: 'ID!' }
+        return { baseType: true, type: `ID${optional ? '' : '!'}` }
       const gqlType = baseTypeConversions[type]
-      return { baseType: true, type: `${gqlType ? gqlType() : type}!` }
+      return {
+        baseType: true,
+        type: `${gqlType ? gqlType() : type}${optional ? '' : '!'}`,
+      }
     }
 
     if (Array.isArray(type)) {
-      return this.processArrayType(type, name)
+      return this.processArrayType(type, name, optional)
     }
-    return this.processObjectType(type, name)
+    return this.processObjectType(type, name, optional)
   }
 
   removeNonNullable(type) {
@@ -487,15 +495,39 @@ class GqlSchema {
     return type
   }
 
-  processField({ name, type, doc }, createDoc = true, inputField = false) {
-    const processedType = this.processType(type, name)
-    return `${
+  processQueryFieldTypeName({ type, doc, baseType, enom }) {
+    if (!baseType && !enom) {
+      if (_.indexOf(type, '[') === 0) {
+        let outerNullable = true
+        if (_.indexOf(type, '!') === type.length - 1) {
+          outerNullable = false
+          type = type.slice(0, type.length - 1)
+        }
+        type = type.slice(1, type.length - 1)
+        return `Query${type}${outerNullable ? '' : '!'}`
+      }
+      return `Query${type}`
+    }
+    return type
+  }
+
+  processField(
+    { name, type, doc },
+    createDoc = true,
+    inputField = false,
+    queryField = false,
+  ) {
+    const processedType = this.processType(type, name, queryField)
+    const response = `${
       createDoc ? '"' + (doc || processedType.doc) + '"\n\t' : ''
     }${name}: ${
       inputField
-        ? this.processInputFieldTypeName(processedType)
+        ? queryField
+          ? this.processQueryFieldTypeName(processedType)
+          : this.processInputFieldTypeName(processedType)
         : processedType.type
     }`
+    return response
   }
 
   createInput({ name, fields }) {
@@ -512,6 +544,22 @@ class GqlSchema {
     this.inputs = _.uniq(this.inputs)
     return pascalize(name)
   }
+
+  createQueryInput({ name, fields }) {
+    fields = _.sortBy(fields, 'name')
+    let type = _.reduce(
+      fields,
+      (m, field) => {
+        return m + '\t' + this.processField(field, null, true, true) + '\n'
+      },
+      `input Query${pascalize(name)} {\n`,
+    )
+    type += '}'
+    this.inputs.unshift(type)
+    this.inputs = _.uniq(this.inputs)
+    return pascalize(name)
+  }
+
   createType({ name, fields }, createInput = true, topLevel = false) {
     fields = _.sortBy(fields, 'name')
     let type = `type ${pascalize(name)}`
@@ -528,17 +576,45 @@ class GqlSchema {
         type += `maxAge: ${this.cacheControl.maxAge})`
       else type += `scope: ${this.cacheControl.scope})`
     }
+
     type += ' {\n'
     type = _.reduce(
       fields,
       (m, field) => {
         const processedField = this.processField(field)
         if (
-          topLevel &&
+          !createInput &&
           this.queryableFields.length &&
           _.indexOf(this.queryableFields, field.name) !== -1
         ) {
           this.queryFields.push(processedField)
+          if (typeof field.type === 'object') {
+            if (Array.isArray(field.type)) {
+              if (
+                _.some(field.type, ft => {
+                  if (!ft || typeof ft !== 'object' || !ft.type) return false
+                  return ft.type === 'record'
+                })
+              ) {
+                this.queryFields.pop()
+                const inputProcessedField = this.processField(
+                  field,
+                  null,
+                  true,
+                  true,
+                )
+                this.createQueryInput(
+                  _.find(field.type, tp => {
+                    return tp !== 'null'
+                  }),
+                )
+                this.queryFields.push({
+                  line: inputProcessedField,
+                  multiInput: false,
+                })
+              }
+            }
+          }
         }
         return m + '\t' + processedField + '\n'
       },
