@@ -45,11 +45,24 @@ class Database {
   // Disconnect from your database
   async disconnect() {}
 
-  // Return the created doc
+  // Returns the created doc
   async create(root, args, context, info) {}
 
-  // Return the updated doc
+  // Returns the updated doc
   async update(root, args, context, info) {}
+
+  // Returns the incremented doc
+  // args = {
+  //   id: 'idOfYourDocInWhatever',
+  //   nested: {
+  //     value: {
+  //       you:{
+  //         increment: -5
+  //       }
+  //     }
+  //   }
+  // }
+  async increment(root, args, context, info) {}
 
   // Return true / false if successful / failed
   async delete(root, args, context, info) {}
@@ -68,7 +81,7 @@ class Database {
   // }
   async find(root, args, context, info) {}
 
-  // Return  the number of docs that match the search query
+  // Returns the number of docs that match the search query
   async count(root, args, context, info) {}
 }
 

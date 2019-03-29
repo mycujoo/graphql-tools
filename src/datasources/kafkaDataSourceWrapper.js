@@ -15,27 +15,30 @@ module.exports = (DatabaseDataSource, addAdditive) => {
       this.producer = new Producer(kafka)
     }
 
-    async produce(doc) {
+    async produce(res) {
+      const doc = addAdditive(res)
       const wares = { value: doc, key: doc[this.idField] }
       this.debug(`${this.name} sending a newly updated message to kafka`, wares)
       await this.producer.produce(wares)
       this.debug(
         `${this.name} successfully send a newly updated message to kafka`,
       )
+      return res
     }
 
     async create(...args) {
       const res = await super.create.apply(this, args)
-      const doc = addAdditive(res)
-      await this.produce(doc)
-      return res
+      return this.produce(res)
     }
 
     async update(...args) {
       const res = await super.update.apply(this, args)
-      const doc = addAdditive(res)
-      await this.produce(doc)
-      return res
+      return this.produce(res)
+    }
+
+    async increment(...args) {
+      const res = await super.increment.apply(this, args)
+      return this.produce(res)
     }
   }
   return KafkaDatabaseDataSource
