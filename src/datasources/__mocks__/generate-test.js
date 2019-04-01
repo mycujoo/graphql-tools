@@ -460,5 +460,18 @@ module.exports = dataSource => {
       const results = await dataSource.find.apply(dataSource, formatArgs(query))
       expect(results.items).toEqual(dateSortedItems)
     })
+    test('should find an item by nested text', async () => {
+      const query = {
+        nested: {
+          text: 'text2',
+        },
+      }
+
+      const expectedRes = _.find(createdItems, item => {
+        return item.nested.text === query.nested.text
+      })
+      const results = await dataSource.find.apply(dataSource, formatArgs(query))
+      expect(results.items).toEqual([expectedRes])
+    })
   })
 }
