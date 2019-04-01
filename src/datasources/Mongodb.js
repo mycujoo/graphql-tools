@@ -49,10 +49,12 @@ class Mongodb extends Database {
     const res = {}
     if (sort.includes('Asc')) {
       const [param] = sort.split('Asc')
-      res[param] = 1
+      const attributeName = param.replace('_', '.')
+      res[attributeName] = 1
     } else if (sort.includes('Dsc')) {
       const [param] = sort.split('Dsc')
-      res[param] = -1
+      const attributeName = param.replace('_', '.')
+      res[attributeName] = -1
     } else {
       throw new Error(`Unknown sort found ${sort}`)
     }
