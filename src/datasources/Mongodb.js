@@ -124,6 +124,7 @@ class Mongodb extends Database {
   }
 
   async increment(parent, args, context, info) {
+    super.increment.apply(this, [null, args])
     const query = this._getIdObject(args[this._idField])
     const update = { $inc: {} }
 

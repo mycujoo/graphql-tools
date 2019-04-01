@@ -1,6 +1,7 @@
 'use strict'
 
 const _ = require('lodash')
+const dot = require('dot-object')
 const { camelize, pascalize } = require('humps')
 
 const baseTypeConversions = {
@@ -329,18 +330,82 @@ class GqlSchema {
     if (this.incrementableFields.length) {
       const mutationTypeName = 'increment'
       const mutationName = camelize(`${mutationTypeName}_` + this.avro.name)
-      let mutation = `\t${mutationName}(${this.idField} : ID! `
-      _.each(this.incrementableFields, field => {
-        mutation += ` ${field}: Int`
-      })
+      const idObj = {}
+      idObj[this.idField] = 'string'
+      const dotObject = _.reduce(
+        this.incrementableFields,
+        (m, field) => {
+          m[field.replace('_', '.')] = 'Int'
+          return m
+        },
+        idObj,
+      )
 
-      mutation += `): ${pascalize(this.avro.name)}\n`
+      dot.object(dotObject)
+      const dotFields = this.getDotFields(dotObject)
+
+      const incrementProps = this.getIncrementProps(
+        { fields: dotFields, name: pascalize(mutationName) },
+        true,
+      )
+      let mutation = `\t${mutationName}(\n${incrementProps}\t): ${pascalize(
+        this.avro.name,
+      )}\n`
+      // _.each(this.incrementableFields, field => {
+      //   mutation += ` ${field}: Int`
+      // })
+
       this.addMutationToResolver(mutationName, mutationTypeName)
       mutationType += mutation
     }
 
     mutationType += '}\n'
     this.types.push(mutationType)
+  }
+
+  getDotFields(dotObject) {
+    const dotFields = _.map(dotObject, (value, key) => {
+      if (typeof value === 'object') {
+        return {
+          name: key,
+          type: 'record',
+          fields: this.getDotFields(value),
+        }
+      } else if (key === this.idField) {
+        return {
+          name: key,
+          type: value,
+        }
+      } else {
+        return {
+          name: key,
+          type: 'int',
+        }
+      }
+    })
+    return dotFields
+  }
+
+  getIncrementProps({ name, fields }, includeId = true) {
+    fields = _.sortBy(fields, 'name')
+    let type = _.reduce(
+      fields,
+      (m, field) => {
+        if (!includeId && field.name === this.idField) return m
+        let processedField
+        if (field.type === 'record') {
+          const input = this.createInput(field)
+          processedField = `${field.name}: Input${input}`
+        } else {
+          processedField = this.processField(field, false, false, false)
+        }
+        if (field.name !== this.idField)
+          processedField = this.removeNonNullable(processedField)
+        return m + '\t\t' + processedField + '\n'
+      },
+      '',
+    )
+    return type
   }
 
   createQueryType() {
