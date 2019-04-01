@@ -411,5 +411,67 @@ module.exports = dataSource => {
       expect(res2.nested.number).toEqual(9)
       createdItems[0] = res2
     })
+
+    test('should find, limit and sort few items with a nested range query', async () => {
+      const query = {
+        _range_nested_number: {
+          gt: 5,
+        },
+        _sort: ['dateDsc'],
+        _limit: 3,
+        _before: 3,
+      }
+
+      const dateSortedItems = _.take(
+        _.sortBy(
+          _.filter(createdItems, item => {
+            return item.nested.number > query._range_nested_number.gt
+          }),
+          item => {
+            return -item.date
+          },
+        ),
+        3,
+      )
+      const results = await dataSource.find.apply(dataSource, formatArgs(query))
+      expect(results.items).toEqual(dateSortedItems)
+    })
+    test('should find and limit a few items with a nested sort query', async () => {
+      const query = {
+        _range_nested_number: {
+          gt: 5,
+        },
+        _sort: ['nested_numberDsc'],
+        _limit: 3,
+        _before: 3,
+      }
+
+      const dateSortedItems = _.take(
+        _.sortBy(
+          _.filter(createdItems, item => {
+            return item.nested.number > query._range_nested_number.gt
+          }),
+          item => {
+            return -item.nested.number
+          },
+        ),
+        3,
+      )
+      const results = await dataSource.find.apply(dataSource, formatArgs(query))
+      expect(results.items).toEqual(dateSortedItems)
+    })
+    test('should find an item by nested text', async () => {
+      const query = {
+        nested: {
+          text: 'text2',
+        },
+      }
+
+      const expectedRes = _.find(createdItems, item => {
+        return item.nested.text === query.nested.text
+      })
+      const results = await dataSource.find.apply(dataSource, formatArgs(query))
+      expect(results.items).toEqual([expectedRes])
+    })
   })
 }

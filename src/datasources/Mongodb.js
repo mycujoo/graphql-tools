@@ -49,10 +49,12 @@ class Mongodb extends Database {
     const res = {}
     if (sort.includes('Asc')) {
       const [param] = sort.split('Asc')
-      res[param] = 1
+      const attributeName = param.replace('_', '.')
+      res[attributeName] = 1
     } else if (sort.includes('Dsc')) {
       const [param] = sort.split('Dsc')
-      res[param] = -1
+      const attributeName = param.replace('_', '.')
+      res[attributeName] = -1
     } else {
       throw new Error(`Unknown sort found ${sort}`)
     }
@@ -71,7 +73,8 @@ class Mongodb extends Database {
   }
 
   _formatRangeQuery(name, options) {
-    const attributeName = name.split('_range_')[1]
+    const attributeNames = name.split('_range_')[1]
+    const attributeName = attributeNames.replace('_', '.')
     const value = _.reduce(
       options,
       (m, value, key) => {
@@ -121,6 +124,7 @@ class Mongodb extends Database {
   }
 
   async increment(parent, args, context, info) {
+    super.increment.apply(this, [null, args])
     const query = this._getIdObject(args[this._idField])
     const update = { $inc: {} }
 

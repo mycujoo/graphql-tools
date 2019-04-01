@@ -62,7 +62,10 @@ class Database {
   //     }
   //   }
   // }
-  async increment(root, args, context, info) {}
+  increment(root, args, context, info) {
+    if (_.isEmpty(_.omit(args, this._idField)))
+      throw new Error('You must specify a field to increment!')
+  }
 
   // Return true / false if successful / failed
   async delete(root, args, context, info) {}

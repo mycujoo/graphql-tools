@@ -1,6 +1,7 @@
 'use strict'
 
 const _ = require('lodash')
+const dot = require('dot-object')
 const { camelize, pascalize } = require('humps')
 
 const baseTypeConversions = {
@@ -49,16 +50,17 @@ function schemaFromAvro(parts) {
 
 function avroToGraphql({
   avroSchema,
+  cacheControl,
   createCursor,
   dataSourceName,
   idField,
+  incrementableFields,
   mutations,
   omitFields = [],
   queries,
   queryableFields,
-  sortableFields,
   rangeQueryableFields,
-  cacheControl,
+  sortableFields,
 }) {
   avroSchema.fields = _.filter(avroSchema.fields, ({ name }) => {
     return _.indexOf(omitFields, name) === -1
@@ -66,15 +68,16 @@ function avroToGraphql({
 
   const gqlSchema = new GqlSchema({
     avro: avroSchema,
+    cacheControl,
     createCursor,
     dataSourceName,
     idField,
+    incrementableFields,
     mutations,
     queries,
     queryableFields,
-    sortableFields,
     rangeQueryableFields,
-    cacheControl,
+    sortableFields,
   })
   const typeDef = gqlSchema.getTypeDef()
   const resolver = gqlSchema.getResolver()
@@ -84,20 +87,22 @@ function avroToGraphql({
 class GqlSchema {
   constructor({
     avro,
+    cacheControl,
     createCursor = false,
     dataSourceName,
     idField = 'id',
+    incrementableFields = [],
     mutations,
     queries,
     queryableFields = [],
-    sortableFields = [],
     rangeQueryableFields = [],
-    cacheControl,
+    sortableFields = [],
   }) {
     this.avro = avro
     this.mutations = mutations
     this.idField = idField
     this.queryableFields = queryableFields
+    this.incrementableFields = incrementableFields
     this.rangeQueryableFields = rangeQueryableFields
     this.extendQuery = !_.isNil(queries.extend) ? queries.extend : true
     this.extendMutation = !_.isNil(mutations.extend) ? mutations.extend : true
@@ -120,13 +125,17 @@ class GqlSchema {
 
   createFindQuery(queryName) {
     let queryType = `\t${queryName}(\n`
-
+    let multiInput = true
     _.each(this.queryFields, line => {
-      line = line.split('\t')[1]
+      if (typeof line === 'object') {
+        multiInput = line.multiInput
+        line = line.line
+      }
+      if (line.includes('\t')) line = line.split('\t')[1]
       line = _.without(line.split(''), '!').join('')
       const lineParts = line.split(':')
       let type = lineParts[1].trim()
-      if (type.indexOf('[') !== 0) {
+      if (multiInput && type.indexOf('[') !== 0) {
         type = `[${type}]`
       }
       line = `${lineParts[0]} : ${type}`
@@ -155,7 +164,8 @@ class GqlSchema {
       queryType += `\t\t_range_${field}: InputRangeSelector\n`
     })
     _.each(this.queryFields, line => {
-      line = line.split('\t')[1]
+      if (line.line) line = line.line
+      if (line.includes('\t')) line = line.split('\t')[1]
       line = _.without(line.split(''), '!').join('')
       const lineParts = line.split(':')
       line = `${lineParts[0]} : [${lineParts[1].trim()}]`
@@ -317,8 +327,85 @@ class GqlSchema {
       mutationType += `\t${mutationName}(${this.idField}: ID!): Boolean!\n`
     }
 
+    if (this.incrementableFields.length) {
+      const mutationTypeName = 'increment'
+      const mutationName = camelize(`${mutationTypeName}_` + this.avro.name)
+      const idObj = {}
+      idObj[this.idField] = 'string'
+      const dotObject = _.reduce(
+        this.incrementableFields,
+        (m, field) => {
+          m[field.replace('_', '.')] = 'Int'
+          return m
+        },
+        idObj,
+      )
+
+      dot.object(dotObject)
+      const dotFields = this.getDotFields(dotObject)
+
+      const incrementProps = this.getIncrementProps(
+        { fields: dotFields, name: pascalize(mutationName) },
+        true,
+      )
+      let mutation = `\t${mutationName}(\n${incrementProps}\t): ${pascalize(
+        this.avro.name,
+      )}\n`
+      // _.each(this.incrementableFields, field => {
+      //   mutation += ` ${field}: Int`
+      // })
+
+      this.addMutationToResolver(mutationName, mutationTypeName)
+      mutationType += mutation
+    }
+
     mutationType += '}\n'
     this.types.push(mutationType)
+  }
+
+  getDotFields(dotObject) {
+    const dotFields = _.map(dotObject, (value, key) => {
+      if (typeof value === 'object') {
+        return {
+          name: key,
+          type: 'record',
+          fields: this.getDotFields(value),
+        }
+      } else if (key === this.idField) {
+        return {
+          name: key,
+          type: value,
+        }
+      } else {
+        return {
+          name: key,
+          type: 'int',
+        }
+      }
+    })
+    return dotFields
+  }
+
+  getIncrementProps({ name, fields }, includeId = true) {
+    fields = _.sortBy(fields, 'name')
+    let type = _.reduce(
+      fields,
+      (m, field) => {
+        if (!includeId && field.name === this.idField) return m
+        let processedField
+        if (field.type === 'record') {
+          const input = this.createInput(field)
+          processedField = `${field.name}: Input${input}`
+        } else {
+          processedField = this.processField(field, false, false, false)
+        }
+        if (field.name !== this.idField)
+          processedField = this.removeNonNullable(processedField)
+        return m + '\t\t' + processedField + '\n'
+      },
+      '',
+    )
+    return type
   }
 
   createQueryType() {
@@ -424,9 +511,9 @@ class GqlSchema {
     }
   }
 
-  processArrayType(types, name) {
+  processArrayType(types, name, optional) {
     const nullLessTypes = _.without(types, 'null')
-    const isNullable = nullLessTypes.length !== types.length
+    const isNullable = optional || nullLessTypes.length !== types.length
     if (nullLessTypes.length === 1) {
       const processedType = this.processType(nullLessTypes[0], name)
       if (
@@ -446,22 +533,25 @@ class GqlSchema {
     )
   }
 
-  processType(type, name) {
+  processType(type, name, optional) {
     if (typeof type === 'string') {
       if (
         name === 'id' ||
         name === '_id' ||
         name.slice(name.length - 2) === 'Id'
       )
-        return { baseType: true, type: 'ID!' }
+        return { baseType: true, type: `ID${optional ? '' : '!'}` }
       const gqlType = baseTypeConversions[type]
-      return { baseType: true, type: `${gqlType ? gqlType() : type}!` }
+      return {
+        baseType: true,
+        type: `${gqlType ? gqlType() : type}${optional ? '' : '!'}`,
+      }
     }
 
     if (Array.isArray(type)) {
-      return this.processArrayType(type, name)
+      return this.processArrayType(type, name, optional)
     }
-    return this.processObjectType(type, name)
+    return this.processObjectType(type, name, optional)
   }
 
   removeNonNullable(type) {
@@ -487,15 +577,39 @@ class GqlSchema {
     return type
   }
 
-  processField({ name, type, doc }, createDoc = true, inputField = false) {
-    const processedType = this.processType(type, name)
-    return `${
+  processQueryFieldTypeName({ type, doc, baseType, enom }) {
+    if (!baseType && !enom) {
+      if (_.indexOf(type, '[') === 0) {
+        let outerNullable = true
+        if (_.indexOf(type, '!') === type.length - 1) {
+          outerNullable = false
+          type = type.slice(0, type.length - 1)
+        }
+        type = type.slice(1, type.length - 1)
+        return `Query${type}${outerNullable ? '' : '!'}`
+      }
+      return `Query${type}`
+    }
+    return type
+  }
+
+  processField(
+    { name, type, doc },
+    createDoc = true,
+    inputField = false,
+    queryField = false,
+  ) {
+    const processedType = this.processType(type, name, queryField)
+    const response = `${
       createDoc ? '"' + (doc || processedType.doc) + '"\n\t' : ''
     }${name}: ${
       inputField
-        ? this.processInputFieldTypeName(processedType)
+        ? queryField
+          ? this.processQueryFieldTypeName(processedType)
+          : this.processInputFieldTypeName(processedType)
         : processedType.type
     }`
+    return response
   }
 
   createInput({ name, fields }) {
@@ -512,6 +626,22 @@ class GqlSchema {
     this.inputs = _.uniq(this.inputs)
     return pascalize(name)
   }
+
+  createQueryInput({ name, fields }) {
+    fields = _.sortBy(fields, 'name')
+    let type = _.reduce(
+      fields,
+      (m, field) => {
+        return m + '\t' + this.processField(field, null, true, true) + '\n'
+      },
+      `input Query${pascalize(name)} {\n`,
+    )
+    type += '}'
+    this.inputs.unshift(type)
+    this.inputs = _.uniq(this.inputs)
+    return pascalize(name)
+  }
+
   createType({ name, fields }, createInput = true, topLevel = false) {
     fields = _.sortBy(fields, 'name')
     let type = `type ${pascalize(name)}`
@@ -528,17 +658,45 @@ class GqlSchema {
         type += `maxAge: ${this.cacheControl.maxAge})`
       else type += `scope: ${this.cacheControl.scope})`
     }
+
     type += ' {\n'
     type = _.reduce(
       fields,
       (m, field) => {
         const processedField = this.processField(field)
         if (
-          topLevel &&
+          !createInput &&
           this.queryableFields.length &&
           _.indexOf(this.queryableFields, field.name) !== -1
         ) {
           this.queryFields.push(processedField)
+          if (typeof field.type === 'object') {
+            if (Array.isArray(field.type)) {
+              if (
+                _.some(field.type, ft => {
+                  if (!ft || typeof ft !== 'object' || !ft.type) return false
+                  return ft.type === 'record'
+                })
+              ) {
+                this.queryFields.pop()
+                const inputProcessedField = this.processField(
+                  field,
+                  null,
+                  true,
+                  true,
+                )
+                this.createQueryInput(
+                  _.find(field.type, tp => {
+                    return tp !== 'null'
+                  }),
+                )
+                this.queryFields.push({
+                  line: inputProcessedField,
+                  multiInput: false,
+                })
+              }
+            }
+          }
         }
         return m + '\t' + processedField + '\n'
       },
