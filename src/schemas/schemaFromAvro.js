@@ -49,16 +49,17 @@ function schemaFromAvro(parts) {
 
 function avroToGraphql({
   avroSchema,
+  cacheControl,
   createCursor,
   dataSourceName,
   idField,
+  incrementableFields,
   mutations,
   omitFields = [],
   queries,
   queryableFields,
-  sortableFields,
   rangeQueryableFields,
-  cacheControl,
+  sortableFields,
 }) {
   avroSchema.fields = _.filter(avroSchema.fields, ({ name }) => {
     return _.indexOf(omitFields, name) === -1
@@ -66,15 +67,16 @@ function avroToGraphql({
 
   const gqlSchema = new GqlSchema({
     avro: avroSchema,
+    cacheControl,
     createCursor,
     dataSourceName,
     idField,
+    incrementableFields,
     mutations,
     queries,
     queryableFields,
-    sortableFields,
     rangeQueryableFields,
-    cacheControl,
+    sortableFields,
   })
   const typeDef = gqlSchema.getTypeDef()
   const resolver = gqlSchema.getResolver()
@@ -84,20 +86,22 @@ function avroToGraphql({
 class GqlSchema {
   constructor({
     avro,
+    cacheControl,
     createCursor = false,
     dataSourceName,
     idField = 'id',
+    incrementableFields = [],
     mutations,
     queries,
     queryableFields = [],
-    sortableFields = [],
     rangeQueryableFields = [],
-    cacheControl,
+    sortableFields = [],
   }) {
     this.avro = avro
     this.mutations = mutations
     this.idField = idField
     this.queryableFields = queryableFields
+    this.incrementableFields = incrementableFields
     this.rangeQueryableFields = rangeQueryableFields
     this.extendQuery = !_.isNil(queries.extend) ? queries.extend : true
     this.extendMutation = !_.isNil(mutations.extend) ? mutations.extend : true
@@ -320,6 +324,19 @@ class GqlSchema {
       const mutationName = camelize(`${mutationTypeName}_` + this.avro.name)
       this.addMutationToResolver(mutationName, mutationTypeName)
       mutationType += `\t${mutationName}(${this.idField}: ID!): Boolean!\n`
+    }
+
+    if (this.incrementableFields.length) {
+      const mutationTypeName = 'increment'
+      const mutationName = camelize(`${mutationTypeName}_` + this.avro.name)
+      let mutation = `\t${mutationName}(${this.idField} : ID! `
+      _.each(this.incrementableFields, field => {
+        mutation += ` ${field}: Int`
+      })
+
+      mutation += `): ${pascalize(this.avro.name)}\n`
+      this.addMutationToResolver(mutationName, mutationTypeName)
+      mutationType += mutation
     }
 
     mutationType += '}\n'
