@@ -1,0 +1,481 @@
+enum IssueCategorySort {
+	titleAsc
+	titleDsc
+}
+
+input InputIssueCategory {
+	creatorUserId: ID!
+	deleted: Boolean!
+	description: String!
+	id: ID!
+	title: String!
+	updaterUserId: ID
+}
+
+input InputRangeSelector {
+	gt: Int
+	gte: Int
+	lt: Int
+	lte: Int
+}
+
+type IssueCategoryCursor @cacheControl(maxAge: 300) {
+	"Cursor"
+	cursor: Cursor!
+	"IssueCategorys"
+	items: [IssueCategory]!
+}
+
+type IssueCategory @cacheControl(maxAge: 300) {
+	"User ID of the creator of the category"
+	creatorUserId: ID!
+	"Soft delete of the category"
+	deleted: Boolean!
+	"Description of the category"
+	description: String!
+	"ID of the category"
+	id: ID!
+	"Title of the category"
+	title: String!
+	"User ID of the person who was the last person to update the category"
+	updaterUserId: ID
+}
+
+type Cursor @cacheControl(maxAge: 300) {
+	"End of page"
+	end: ID!
+	"Start of page"
+	start: ID!
+}
+
+type Query {
+	issueCategory(id: ID!): IssueCategory
+}
+
+type Mutation {
+	createIssueCategory(
+		creatorUserId: ID!
+		deleted: Boolean!
+		description: String!
+		title: String!
+		updaterUserId: ID
+	): IssueCategory!
+
+}
+
+
+extend type Query {
+	issuecategorys(
+		_limit: Int!
+		_after: ID
+		_before: ID
+		_sort: [IssueCategorySort]
+	): IssueCategoryCursor
+
+	issuecategorysCount: Int!
+},
+      extend type IssueType {
+        category: IssueCategory
+      }
+    ,enum IssueTypeSort {
+	categoryIdAsc
+	categoryIdDsc
+	titleAsc
+	titleDsc
+}
+
+input InputIssueType {
+	categoryId: ID!
+	creatorUserId: ID!
+	deleted: Boolean!
+	description: String!
+	id: ID!
+	title: String!
+	updaterUserId: ID
+}
+
+type IssueTypeCursor @cacheControl(maxAge: 300) {
+	"Cursor"
+	cursor: Cursor!
+	"IssueTypes"
+	items: [IssueType]!
+}
+
+type IssueType @cacheControl(maxAge: 300) {
+	"ID of the category of the type"
+	categoryId: ID!
+	"User ID of the creator of the type"
+	creatorUserId: ID!
+	"Soft delete of the type"
+	deleted: Boolean!
+	"Description of the type"
+	description: String!
+	"ID of the type"
+	id: ID!
+	"Title of the type"
+	title: String!
+	"User ID of the person who was the last person to update the type"
+	updaterUserId: ID
+}
+
+extend type Query {
+	issueType(id: ID!): IssueType
+}
+
+extend type Mutation {
+	createIssueType(
+		categoryId: ID!
+		creatorUserId: ID!
+		deleted: Boolean!
+		description: String!
+		title: String!
+		updaterUserId: ID
+	): IssueType!
+
+}
+
+
+extend type Query {
+	issuetypes(
+		categoryId : [ID]
+		_limit: Int!
+		_after: ID
+		_before: ID
+		_sort: [IssueTypeSort]
+	): IssueTypeCursor
+
+	issuetypesCount(
+		categoryId : [ID]
+	): Int!
+},enum ResolverGroupSort {
+	descriptionAsc
+	descriptionDsc
+	emailAsc
+	emailDsc
+	slackChannelAsc
+	slackChannelDsc
+	titleAsc
+	titleDsc
+}
+
+input InputResolverGroup {
+	creatorUserId: ID!
+	deleted: Boolean!
+	description: String!
+	email: String!
+	id: ID!
+	slackChannel: String!
+	title: String!
+	updaterUserId: ID
+	userIds: [String]!
+}
+
+type ResolverGroupCursor @cacheControl(maxAge: 300) {
+	"Cursor"
+	cursor: Cursor!
+	"ResolverGroups"
+	items: [ResolverGroup]!
+}
+
+type ResolverGroup @cacheControl(maxAge: 300) {
+	"User ID of the creator of the resolver group"
+	creatorUserId: ID!
+	"Soft delete of the resolver group"
+	deleted: Boolean!
+	"Description of the resolver group"
+	description: String!
+	"Email address of the resolver group"
+	email: String!
+	"ID of the resolver group"
+	id: ID!
+	"Slack channel of the resolver group"
+	slackChannel: String!
+	"Title of the resolver group"
+	title: String!
+	"User ID of the person who was the last person to update the resolver group"
+	updaterUserId: ID
+	"Ids of the users that are part of this resolver group"
+	userIds: [String]!
+}
+
+extend type Query {
+	resolverGroup(id: ID!): ResolverGroup
+}
+
+extend type Mutation {
+	createResolverGroup(
+		creatorUserId: ID!
+		deleted: Boolean!
+		description: String!
+		email: String!
+		slackChannel: String!
+		title: String!
+		updaterUserId: ID
+		userIds: [String]!
+	): ResolverGroup!
+
+}
+
+
+extend type Query {
+	resolvergroups(
+		deleted : [Boolean]
+		email : [String]
+		slackChannel : [String]
+		title : [String]
+		userIds : [String]
+		_limit: Int!
+		_after: ID
+		_before: ID
+		_sort: [ResolverGroupSort]
+	): ResolverGroupCursor
+
+	resolvergroupsCount(
+		deleted : [Boolean]
+		email : [String]
+		slackChannel : [String]
+		title : [String]
+		userIds : [[String]]
+	): Int!
+},
+      extend type IssueItem {
+        type: IssueType
+        resolverGroup: ResolverGroup
+      }
+    ,enum IssueItemSort {
+	titleAsc
+	titleDsc
+	typeIdAsc
+	typeIdDsc
+}
+
+input InputIssueItem {
+	creatorUserId: ID!
+	deleted: Boolean!
+	description: String!
+	id: ID!
+	resolverGroupId: ID!
+	title: String!
+	typeId: ID!
+	updaterUserId: ID
+}
+
+type IssueItemCursor @cacheControl(maxAge: 300) {
+	"Cursor"
+	cursor: Cursor!
+	"IssueItems"
+	items: [IssueItem]!
+}
+
+type IssueItem @cacheControl(maxAge: 300) {
+	"User ID of the creator of the item"
+	creatorUserId: ID!
+	"Soft delete of the item"
+	deleted: Boolean!
+	"Description of the item"
+	description: String!
+	"ID of the item"
+	id: ID!
+	"ID of the resolver group related to the issue"
+	resolverGroupId: ID!
+	"Title of the item"
+	title: String!
+	"ID of the type of the item"
+	typeId: ID!
+	"User ID of the person who was the last person to update the item"
+	updaterUserId: ID
+}
+
+extend type Query {
+	issueItem(id: ID!): IssueItem
+}
+
+extend type Mutation {
+	createIssueItem(
+		creatorUserId: ID!
+		deleted: Boolean!
+		description: String!
+		resolverGroupId: ID!
+		title: String!
+		typeId: ID!
+		updaterUserId: ID
+	): IssueItem!
+
+}
+
+
+extend type Query {
+	issueitems(
+		deleted : [Boolean]
+		typeId : [ID]
+		_limit: Int!
+		_after: ID
+		_before: ID
+		_sort: [IssueItemSort]
+	): IssueItemCursor
+
+	issueitemsCount(
+		deleted : [Boolean]
+		typeId : [ID]
+	): Int!
+},
+      extend type Issue {
+        item: IssueItem
+      }
+    ,enum IssueStatus {
+	acknowledged
+	closed
+	open
+	resolved
+}
+
+enum IssueSeverityLevel {
+	severity1
+	severity2
+	severity3
+	severity4
+	severity5
+}
+
+enum Browser {
+	android
+	chrome
+	edge
+	explorer
+	firefox
+	ios
+	safari
+}
+
+enum IssueSort {
+	createdAtAsc
+	createdAtDsc
+	itemIdAsc
+	itemIdDsc
+	severityAsc
+	severityDsc
+	statusAsc
+	statusDsc
+	titleAsc
+	titleDsc
+	votesAsc
+	votesDsc
+}
+
+input InputIssue {
+	browser: Browser
+	createdAt: Float!
+	creatorUserId: ID!
+	deleted: Boolean!
+	description: String!
+	id: ID!
+	itemId: ID!
+	severity: IssueSeverityLevel!
+	slackName: String!
+	status: IssueStatus!
+	title: String!
+	updaterUserId: ID
+	votes: Int!
+}
+
+type IssueCursor @cacheControl(maxAge: 30) {
+	"Cursor"
+	cursor: Cursor!
+	"Issues"
+	items: [Issue]!
+}
+
+type Issue @cacheControl(maxAge: 30) {
+	"Browser that was used while encountering the issue"
+	browser: Browser
+	"Time at which the issue has been created"
+	createdAt: Float!
+	"User ID of the creator of the issue"
+	creatorUserId: ID!
+	"Soft delete of the issue"
+	deleted: Boolean!
+	"Description of the issue"
+	description: String!
+	"ID of the issue"
+	id: ID!
+	"ID of the item of the issue"
+	itemId: ID!
+	"Severity level of the issue, severity1 being of the highest urgency severity5 being the lowest urgency"
+	severity: IssueSeverityLevel!
+	"Slack name of the issue creator"
+	slackName: String!
+	"Status of the issue"
+	status: IssueStatus!
+	"Title of the issue"
+	title: String!
+	"User ID of the person who was the last person to update the issue"
+	updaterUserId: ID
+	"Number of upvotes cast on the issue"
+	votes: Int!
+}
+
+extend type Query {
+	issue(id: ID!): Issue
+}
+
+extend type Mutation {
+	createIssue(
+		browser: Browser
+		createdAt: Float!
+		creatorUserId: ID!
+		deleted: Boolean!
+		description: String!
+		itemId: ID!
+		severity: IssueSeverityLevel!
+		slackName: String!
+		status: IssueStatus!
+		title: String!
+		updaterUserId: ID
+		votes: Int!
+	): Issue!
+
+	updateIssue(
+		browser: Browser
+		createdAt: Float
+		creatorUserId: ID
+		deleted: Boolean
+		description: String
+		id: ID!
+		itemId: ID
+		severity: IssueSeverityLevel
+		slackName: String
+		status: IssueStatus
+		title: String
+		updaterUserId: ID
+		votes: Int
+	): Issue
+
+	deleteIssue(id: ID!): Boolean!
+}
+
+
+extend type Query {
+	issues(
+		browser : [Browser]
+		deleted : [Boolean]
+		itemId : [ID]
+		severity : [IssueSeverityLevel]
+		status : [IssueStatus]
+		_range_createdAt: InputRangeSelector
+		_range_votes: InputRangeSelector
+		_limit: Int!
+		_after: ID
+		_before: ID
+		_sort: [IssueSort]
+	): IssueCursor
+
+	issuesCount(
+		_range_createdAt: InputRangeSelector
+		_range_votes: InputRangeSelector
+		browser : [Browser]
+		deleted : [Boolean]
+		itemId : [ID]
+		severity : [IssueSeverityLevel]
+		status : [IssueStatus]
+	): Int!
+}
