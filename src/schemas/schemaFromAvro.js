@@ -389,20 +389,24 @@ class GqlSchema {
     this.unions = _.uniq(this.unions)
   }
 
-  processObjectType(type, name) {
+  processObjectType(type, name, optional) {
     if (type.type === 'enum') {
       const enumName = this.createEnum(type)
-      return { enom: true, type: `${enumName}`, doc: type.doc }
+      return {
+        enom: true,
+        type: `${enumName}${optional ? '' : '!'}`,
+        doc: type.doc,
+      }
     }
     if (type.type === 'record') {
       const typeName = this.createType(type)
-      return { type: `${typeName}!`, doc: type.doc }
+      return { type: `${typeName}${optional ? '' : '!'}`, doc: type.doc }
     }
     if (type.type === 'array') {
       if (Array.isArray(type.items)) {
         // Might not event be nullable?
         const nullLessTypes = _.without(type.items, 'null')
-        const isNullable = nullLessTypes.length !== type.items
+        const isNullable = optional || nullLessTypes.length !== type.items
         this.createUnion(type.items, name)
         return { type: `[${pascalize(name)}]${isNullable ? '' : '!'}` }
       } else if (
