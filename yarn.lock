@@ -288,15 +288,15 @@
     "@types/istanbul-lib-coverage" "^1.1.0"
     "@types/yargs" "^12.0.9"
 
-"@mycujoo/kafka-clients@^2.0.3":
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/@mycujoo/kafka-clients/-/kafka-clients-2.0.3.tgz#84e3a90bad29a1455fb8836edb8f8d2cb2edc6a1"
-  integrity sha512-N6RwPAJbASgqFymSMBhKMiHysE8M9XXvAihVFFWoDxBzgRRJZQt8pboPARytXXhVD97T7aoji9H56bVS/9tamA==
+"@mycujoo/kafka-clients@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@mycujoo/kafka-clients/-/kafka-clients-2.1.1.tgz#f38587b90f35f332e83576db849d83781c76f451"
+  integrity sha512-1oYCdxh5VCnryiAgKFX2/iKxejXdMI74zeyEzwY2A31r/vxrWHyuRcqqVKytjkt+s5F0VJ0EJSxfBh6BDkbtBA==
   dependencies:
     config "^3.0.1"
     debug "^4.1.1"
     got "^9.5.0"
-    json-to-avro "^1.0.6"
+    json-to-avro "^1.1.0"
     kafka-avro "git://github.com/mycujoo/kafka-avro.git#160394a075da34bed2e958396bbc70b398035a92"
     lodash "^4.17.11"
 
@@ -3353,12 +3353,13 @@ json-stringify-safe@~5.0.1:
   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
   integrity sha1-Epai1Y/UXxmg9s4B1lcB4sc1tus=
 
-json-to-avro@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/json-to-avro/-/json-to-avro-1.0.6.tgz#b2959a75d5e48bc7a5c34fdb18836cef88ca835c"
-  integrity sha512-mDNofL7wWQ8rol/BUdmYCe7XOY92dBX28ssqL3uT0yBOb9yYJTA3nrMSKBsGV1eUyoEBtKlQm/nruJjo09gVCg==
+json-to-avro@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/json-to-avro/-/json-to-avro-1.1.0.tgz#42296e5f812d348c5437f61b347defb85da78327"
+  integrity sha512-ZwNlJq+qBRDTdBun3PmyAQ3hjnmh8tPcWZwEghTcrOwR+naVL1pC3jc22QzPVo3W1enLvWj296zJcN9LLKaHnA==
   dependencies:
     avsc "^5.4.7"
+    debug "^4.1.1"
     lodash "^4.17.11"
 
 json5@^1.0.1:
