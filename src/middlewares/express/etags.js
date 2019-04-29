@@ -6,7 +6,7 @@ const _ = require('lodash')
 module.exports = logger => {
   return (req, res, next) => {
     if (req.method !== 'GET') return next()
-
+    const ifNoneMatch = req.headers['if-none-match']
     let body = ''
     const resEnd = res.end.bind(res)
 
@@ -29,8 +29,15 @@ module.exports = logger => {
         } else {
           payload = body
         }
-        if (payload && payload.length !== 0)
-          res.setHeader('ETag', etag(payload, { weak: true }))
+        if (payload && payload.length !== 0) {
+          const tag = etag(payload, { weak: true })
+          res.setHeader('ETag', tag)
+          if (ifNoneMatch && ifNoneMatch === tag) {
+            console.log('not modified!')
+            res.status(304)
+            return resEnd()
+          }
+        }
       } catch (error) {
         logger.error(`ETag JSON parse error ${error.message}`)
       }
