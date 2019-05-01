@@ -288,23 +288,23 @@
     "@types/istanbul-lib-coverage" "^1.1.0"
     "@types/yargs" "^12.0.9"
 
-"@mycujoo/express-jaeger@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@mycujoo/express-jaeger/-/express-jaeger-0.0.3.tgz#bacb81b2c11f91cbb50990eff5c539cb6c3f4be2"
-  integrity sha512-zDfy6CIbfLQcZFDDJ849yBOuTtkSDdTzlZhiSbDBiq0eUBl4wcWcpatuqRjXyb0qolUDL5w07NsUMIzF508+cQ==
+"@mycujoo/express-jaeger@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@mycujoo/express-jaeger/-/express-jaeger-0.0.4.tgz#cc1060bc3f7f0e247b5f219a88bd76eaaec526b9"
+  integrity sha512-i3xZbpYMADjhppJbP0MiU6Wg0mUnzZKjTzdDxqbYoQ206QdscNoqHasLPOWZ9CVgShwT3MprqUctyV35ViBidA==
   dependencies:
     jaeger-client "^3.14.4"
 
-"@mycujoo/kafka-clients@^2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@mycujoo/kafka-clients/-/kafka-clients-2.1.1.tgz#f38587b90f35f332e83576db849d83781c76f451"
-  integrity sha512-1oYCdxh5VCnryiAgKFX2/iKxejXdMI74zeyEzwY2A31r/vxrWHyuRcqqVKytjkt+s5F0VJ0EJSxfBh6BDkbtBA==
+"@mycujoo/kafka-clients@^2.1.3":
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/@mycujoo/kafka-clients/-/kafka-clients-2.1.3.tgz#5829fac0d2d480960bb88d3f2cfaffd04e4c4116"
+  integrity sha512-nDX9HSoPcFscgiC8sXsna4nOxjHf2SFvJOGvdrxWoT92h8qIbpaW3FEhV01bX6qniwWRrMlAUl+zPWqGlplftg==
   dependencies:
     config "^3.0.1"
     debug "^4.1.1"
     got "^9.5.0"
-    json-to-avro "^1.1.0"
-    kafka-avro "git://github.com/mycujoo/kafka-avro.git#160394a075da34bed2e958396bbc70b398035a92"
+    json-to-avro "^1.1.1"
+    kafka-avro "^1.2.0"
     lodash "^4.17.11"
 
 "@mycujoo/logger@^1.0.4":
@@ -3393,10 +3393,10 @@ json-stringify-safe@~5.0.1:
   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
   integrity sha1-Epai1Y/UXxmg9s4B1lcB4sc1tus=
 
-json-to-avro@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/json-to-avro/-/json-to-avro-1.1.0.tgz#42296e5f812d348c5437f61b347defb85da78327"
-  integrity sha512-ZwNlJq+qBRDTdBun3PmyAQ3hjnmh8tPcWZwEghTcrOwR+naVL1pC3jc22QzPVo3W1enLvWj296zJcN9LLKaHnA==
+json-to-avro@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/json-to-avro/-/json-to-avro-1.1.1.tgz#6e05463aeded550855537611cd0d95f78b0ddbe3"
+  integrity sha512-w3QC4kF0Sg8Dki89EXBY0NsECdTZfTTYMKiLUDsSneBwA7/s3Qs4e+YH1/2IAglUndXTxeKCisSV2+RfO66Kuw==
   dependencies:
     avsc "^5.4.7"
     debug "^4.1.1"
@@ -3426,9 +3426,10 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
-"kafka-avro@git://github.com/mycujoo/kafka-avro.git#160394a075da34bed2e958396bbc70b398035a92":
-  version "1.1.3"
-  resolved "git://github.com/mycujoo/kafka-avro.git#160394a075da34bed2e958396bbc70b398035a92"
+kafka-avro@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/kafka-avro/-/kafka-avro-1.2.0.tgz#74833e4fc88b69b658dc9b640179d119060c4968"
+  integrity sha512-Vhza9re6zGJ8NbA0nlM/sH3LQSPUhSqNQ6QlFQWnZzZbaenl5GehmEHmCQ1U/hnK4wWfaTsw2iIlx98zmd1gPw==
   dependencies:
     avsc "^5.2.3"
     axios "^0.15.3"
