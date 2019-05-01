@@ -288,10 +288,10 @@
     "@types/istanbul-lib-coverage" "^1.1.0"
     "@types/yargs" "^12.0.9"
 
-"@mycujoo/express-jaeger@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@mycujoo/express-jaeger/-/express-jaeger-0.0.4.tgz#cc1060bc3f7f0e247b5f219a88bd76eaaec526b9"
-  integrity sha512-i3xZbpYMADjhppJbP0MiU6Wg0mUnzZKjTzdDxqbYoQ206QdscNoqHasLPOWZ9CVgShwT3MprqUctyV35ViBidA==
+"@mycujoo/express-jaeger@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@mycujoo/express-jaeger/-/express-jaeger-0.0.5.tgz#833a0c173540ddcb00013a858d56850aa54624e5"
+  integrity sha512-hr+3axfcfRT/X7KXNN+etMDhIU7U58irytn2YxtM0ZG+PP3xlg562tvudPgMTlvDhBTI7qTy0mXr6diaL1gInA==
   dependencies:
     jaeger-client "^3.14.4"
 
