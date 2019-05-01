@@ -5,16 +5,18 @@ const _ = require('lodash')
 
 module.exports = logger => {
   return (req, res, next) => {
-    if (req.method !== 'GET') return next()
+    if (!(req.method == 'GET' || req.method == 'HEAD')) return next()
     const ifNoneMatch = req.headers['if-none-match']
     let body = ''
     const resEnd = res.end.bind(res)
 
     res.write = data => {
+      console.log('write data', data)
       body += data
     }
 
     res.end = data => {
+      console.log('end data', data)
       if (data && data.length) body += data
       if (!body || body.length === 0) return resEnd()
 
@@ -32,10 +34,12 @@ module.exports = logger => {
         if (payload && payload.length !== 0) {
           const tag = etag(payload, { weak: true })
           res.setHeader('ETag', tag)
+          console.log('tag', tag)
+          console.log('ifNoneMatch', ifNoneMatch)
+          console.log('tag', tag)
+          console.log('ifNoneMatch', ifNoneMatch)
           if (ifNoneMatch && ifNoneMatch === tag) {
-            console.log('not modified!')
             res.status(304)
-            return resEnd()
           }
         }
       } catch (error) {
