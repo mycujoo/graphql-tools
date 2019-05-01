@@ -1,6 +1,6 @@
 {
   "name": "@mycujoo/graphql-tools",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "graphql-tools, datasources, middlewares, schema generators",
   "main": "index.js",
   "scripts": {
