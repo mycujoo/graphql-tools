@@ -25,10 +25,12 @@ class Database {
       },
     )
   }
+
   initialize({ context, cache }) {
     this.context = context
     this.cache = cache
   }
+
   processId(id) {
     return id
   }
