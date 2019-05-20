@@ -113,8 +113,8 @@ module.exports = (logger, options) => {
     if (mustRevalidate({ req })) return false
 
     try {
-      if (req._span) {
-        req._span.log({ phase: 'Cache middelware: cache lookup' })
+      if (res.locals.span) {
+        res.locals.span.log({ phase: 'Cache middelware: cache lookup' })
       }
       const cached = await redis.hgetall(key)
       if (_.isEmpty(cached) || !cached.body) return false
@@ -143,26 +143,30 @@ module.exports = (logger, options) => {
 
   return async (req, res, next) => {
     if (!useCache(req)) return next()
-    if (req._span) {
-      req._span.log({ phase: 'Cache middelware: start' })
+    if (res.locals.span) {
+      res.locals.span.log({ phase: 'Cache middelware: start' })
     }
     const key = `${prefix}:` + hash(req.originalUrl)
 
     if (await cacheLookup({ key, req, res })) {
-      if (req._span) {
-        req._span.log({ phase: 'Cache middelware: cache succesful lookup' })
+      if (res.locals.span) {
+        res.locals.span.log({
+          phase: 'Cache middelware: cache succesful lookup',
+        })
       }
       return
     }
-    if (req._span) {
-      req._span.log({ phase: 'Cache middelware: cache unsuccesful lookup' })
+    if (res.locals.span) {
+      res.locals.span.log({
+        phase: 'Cache middelware: cache unsuccesful lookup',
+      })
     }
 
     let body = ''
     const originalResEnd = res.end.bind(res)
     const resEnd = data => {
-      if (req._span) {
-        req._span.log({ phase: 'Cache middelware: finished' })
+      if (res.locals.span) {
+        res.locals.span.log({ phase: 'Cache middelware: finished' })
       }
       return originalResEnd(data)
     }
@@ -182,8 +186,8 @@ module.exports = (logger, options) => {
         const ttl = getTtl(res.getHeaders())
 
         setImmediate(async () => {
-          if (req._span) {
-            req._span.log({ phase: 'Cache middelware: storing in redis' })
+          if (res.locals.span) {
+            res.locals.span.log({ phase: 'Cache middelware: storing in redis' })
           }
           await redis
             .multi()
@@ -195,8 +199,8 @@ module.exports = (logger, options) => {
             })
             .expire(key, ttl)
             .exec()
-          if (req._span) {
-            req._span.log({ phase: 'Cache middelware: stored in redis' })
+          if (res.locals.span) {
+            res.locals.span.log({ phase: 'Cache middelware: stored in redis' })
           }
         })
       } catch (err) {
