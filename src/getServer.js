@@ -6,6 +6,7 @@ const getTracer = require('@mycujoo/express-jaeger')
 const helmet = require('helmet')
 const http = require('http')
 const logger = require('@mycujoo/logger')
+const methodOverride = require('method-override')
 
 const { etags, cache, cacheControl } = require('./middlewares/express')
 
@@ -16,6 +17,7 @@ module.exports = ({ redis, project, tracing }) => {
 
   app
     .use(helmet())
+    .use(methodOverride())
     .use(compression())
     .use(etags(logger))
     .use(trace)
