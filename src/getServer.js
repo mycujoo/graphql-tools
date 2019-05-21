@@ -16,11 +16,11 @@ module.exports = ({ redis, project, tracing }) => {
   const { trace, tracer, injectHttpHeaders } = getTracer(tracing)
 
   app
+    .use(trace)
     .use(helmet())
     .use(methodOverride())
     .use(compression())
     .use(etags(logger))
-    .use(trace)
     .use(cacheControl)
     .use(
       cache(logger, {

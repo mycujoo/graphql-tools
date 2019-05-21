@@ -17,6 +17,9 @@ const baseTypeConversions = {
   long: () => {
     return 'Float'
   },
+  float: () => {
+    return 'Float'
+  },
   string: () => {
     return 'String'
   },
@@ -505,7 +508,10 @@ class GqlSchema {
           baseType: true,
         }
       } else {
-        const typeName = this.createType(type.items)
+        const typeName =
+          typeof type.items === 'string'
+            ? pascalize(type.items)
+            : this.createType(type.items)
         return { type: `[${typeName}]!` }
       }
     }
@@ -543,7 +549,7 @@ class GqlSchema {
         return { baseType: true, type: `ID${optional ? '' : '!'}` }
       const gqlType = baseTypeConversions[type]
       return {
-        baseType: true,
+        baseType: !!baseTypeConversions[type],
         type: `${gqlType ? gqlType() : type}${optional ? '' : '!'}`,
       }
     }
@@ -574,6 +580,7 @@ class GqlSchema {
       }
       return `Input${type}`
     }
+
     return type
   }
 
